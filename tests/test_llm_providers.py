@@ -22,7 +22,7 @@ class TestLLMRequest:
         request = LLMRequest(prompt="Hello", model="test-model")
         assert request.prompt == "Hello"
         assert request.model == "test-model"
-        assert request.max_tokens == 4000
+        assert request.max_tokens == 16000
         assert request.temperature == 0.2
         assert request.system is None
 

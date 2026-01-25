@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-01-25
+
+### Added
+- `--max-tokens` option to control LLM output token limit (default: 16000)
+
+### Changed
+- Increased default max_tokens from 4000 to 16000 for large llms.txt files
+
 ## [0.2.1] - 2025-01-25
 
 ### Added

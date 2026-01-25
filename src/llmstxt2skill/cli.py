@@ -32,7 +32,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "-v", "--version",
         action="version",
-        version="%(prog)s 0.2.1",
+        version="%(prog)s 0.2.2",
     )
     parser.add_argument(
         "url",
@@ -76,6 +76,12 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         "--model",
         help="Model identifier (defaults to provider's default model)",
     )
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=16000,
+        help="Maximum tokens for LLM output (default: 16000)",
+    )
 
     return parser.parse_args(args)
 
@@ -109,6 +115,7 @@ async def main() -> None:
                 lang=args.lang,
                 provider_name=args.provider,
                 model=model,
+                max_tokens=args.max_tokens,
             )
             print(f"Generated enriched skill: {skill.name}")
         else:

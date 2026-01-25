@@ -14,6 +14,7 @@ async def enrich_skill(
     provider: LLMProvider | None = None,
     provider_name: str = "databricks",
     model: str | None = None,
+    max_tokens: int = 16000,
 ) -> EnrichedSkill:
     """Enrich llms.txt content using LLM to generate high-quality SKILL.md.
 
@@ -24,6 +25,7 @@ async def enrich_skill(
         provider: LLM provider instance (if None, created from provider_name)
         provider_name: Name of provider to create (databricks, openai, anthropic, openai-compatible)
         model: Model identifier (defaults to provider's default model)
+        max_tokens: Maximum tokens for LLM output (default: 16000)
 
     Returns:
         EnrichedSkill with curated, translated content
@@ -35,7 +37,7 @@ async def enrich_skill(
         model = get_default_model(provider_name)
 
     prompt = _build_enrichment_prompt(llmstxt, lang)
-    request = LLMRequest(prompt=prompt, model=model)
+    request = LLMRequest(prompt=prompt, model=model, max_tokens=max_tokens)
     response = await provider.generate(request)
     return _parse_enriched_response(response, name)
 
