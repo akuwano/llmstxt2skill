@@ -4,9 +4,11 @@ __pycache__/
 *.pyo
 *.egg-info/
 *.egg
+*.whl
+
+# Build artifacts
 dist/
 build/
-*.whl
 
 # Virtual environment
 .venv/

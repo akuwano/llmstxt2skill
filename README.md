@@ -5,7 +5,14 @@ Convert [llms.txt](https://llmstxt.org/) files to [Claude Code](https://docs.ant
 ## Installation
 
 ```bash
-uv pip install -e .
+pip install llmstxt2skill
+```
+
+For development:
+```bash
+git clone https://github.com/akuwano/llmstxt2skill.git
+cd llmstxt2skill
+uv pip install -e ".[dev]"
 ```
 
 ## Usage
