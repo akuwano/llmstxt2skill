@@ -54,7 +54,13 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--enrich",
         action="store_true",
-        help="Use LLM to generate enriched skill (requires DATABRICKS_HOST and DATABRICKS_TOKEN)",
+        help="Use LLM to generate enriched skill with curation and localization",
+    )
+    parser.add_argument(
+        "--provider",
+        default="databricks",
+        choices=["databricks", "openai", "anthropic", "openai-compatible"],
+        help="LLM provider for enrichment (default: databricks)",
     )
     parser.add_argument(
         "--lang",
@@ -63,8 +69,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--model",
-        default="databricks-gemini-3-pro",
-        help="Databricks model endpoint for enrichment (default: databricks-gemini-3-pro)",
+        help="Model identifier (defaults to provider's default model)",
     )
 
     return parser.parse_args(args)
@@ -89,13 +94,16 @@ async def main() -> None:
         # Generate (with or without LLM enrichment)
         if args.enrich:
             from llmstxt2skill.enricher import enrich_skill
+            from llmstxt2skill.llm.factory import get_default_model
 
-            print(f"Enriching with LLM ({args.model})...")
+            model = args.model or get_default_model(args.provider)
+            print(f"Enriching with {args.provider} ({model})...")
             skill = await enrich_skill(
                 llmstxt,
                 name=skill_name,
                 lang=args.lang,
-                model=args.model,
+                provider_name=args.provider,
+                model=model,
             )
             print(f"Generated enriched skill: {skill.name}")
         else:

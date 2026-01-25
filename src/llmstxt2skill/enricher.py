@@ -1,21 +1,19 @@
 """LLM-based enricher for Claude Code Skill generation."""
 
-import os
 import re
 
-import httpx
-
+from llmstxt2skill.llm.base import LLMProvider, LLMRequest
+from llmstxt2skill.llm.factory import create_provider, get_default_model
 from llmstxt2skill.models import EnrichedSkill, LlmsTxt
-
-# Default Databricks serving endpoint
-DEFAULT_MODEL = "databricks-gemini-3-pro"
 
 
 async def enrich_skill(
     llmstxt: LlmsTxt,
     name: str,
     lang: str = "ja",
-    model: str = DEFAULT_MODEL,
+    provider: LLMProvider | None = None,
+    provider_name: str = "databricks",
+    model: str | None = None,
 ) -> EnrichedSkill:
     """Enrich llms.txt content using LLM to generate high-quality SKILL.md.
 
@@ -23,13 +21,22 @@ async def enrich_skill(
         llmstxt: Parsed llms.txt content
         name: Skill name (kebab-case)
         lang: Target language (default: ja for Japanese)
-        model: Databricks serving endpoint model name
+        provider: LLM provider instance (if None, created from provider_name)
+        provider_name: Name of provider to create (databricks, openai, anthropic, openai-compatible)
+        model: Model identifier (defaults to provider's default model)
 
     Returns:
         EnrichedSkill with curated, translated content
     """
+    if provider is None:
+        provider = create_provider(provider_name)
+
+    if model is None:
+        model = get_default_model(provider_name)
+
     prompt = _build_enrichment_prompt(llmstxt, lang)
-    response = await _call_llm(prompt, model)
+    request = LLMRequest(prompt=prompt, model=model)
+    response = await provider.generate(request)
     return _parse_enriched_response(response, name)
 
 
@@ -189,47 +196,3 @@ def _extract_description(content: str) -> str:
     if len(description) > 200:
         description = description[:197] + "..."
     return description if description else "ドキュメントガイド"
-
-
-async def _call_llm(prompt: str, model: str = DEFAULT_MODEL) -> str:
-    """Call Databricks LLM serving endpoint.
-
-    Args:
-        prompt: Prompt text
-        model: Model endpoint name
-
-    Returns:
-        LLM response text
-
-    Raises:
-        ValueError: If DATABRICKS_HOST or DATABRICKS_TOKEN not set
-        httpx.HTTPError: If API call fails
-    """
-    host = os.environ.get("DATABRICKS_HOST", "").rstrip("/")
-    token = os.environ.get("DATABRICKS_TOKEN", "")
-
-    if not host or not token:
-        raise ValueError(
-            "DATABRICKS_HOST and DATABRICKS_TOKEN environment variables must be set"
-        )
-
-    endpoint_url = f"{host}/serving-endpoints/{model}/invocations"
-
-    async with httpx.AsyncClient(timeout=120) as client:
-        response = await client.post(
-            endpoint_url,
-            headers={"Authorization": f"Bearer {token}"},
-            json={
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 4000,
-            },
-        )
-        response.raise_for_status()
-        result = response.json()
-
-        # Handle different response formats
-        content = result["choices"][0]["message"]["content"]
-        if isinstance(content, list):
-            # Some models return content as a list of parts
-            content = content[0].get("text", str(content[0]))
-        return content
