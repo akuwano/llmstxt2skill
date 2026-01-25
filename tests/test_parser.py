@@ -123,6 +123,56 @@ class TestParseLinks:
         assert len(links) == 3
 
 
+class TestLinksWithColonDescription:
+    """Test colon-separated descriptions (llms.txt spec format)."""
+
+    def test_extract_link_with_colon_description(self):
+        content = """# Title
+
+## Resources
+- [Main docs](https://example.com/): How-to guides and tutorials
+"""
+        result = parse_llmstxt(content)
+        links = result.sections[0].links
+        assert len(links) == 1
+        assert links[0].title == "Main docs"
+        assert links[0].url == "https://example.com/"
+        assert links[0].description == "How-to guides and tutorials"
+
+    def test_extract_link_with_long_colon_description(self):
+        """Test LangGraph-style links with long descriptions."""
+        content = """# Title
+
+## Guides
+- [LangGraph Docs](https://example.com/): Overview of the LangGraph project.
+"""
+        result = parse_llmstxt(content)
+        links = result.sections[0].links
+        assert len(links) == 1
+        assert links[0].title == "LangGraph Docs"
+        assert links[0].description == "Overview of the LangGraph project."
+
+
+class TestLinksWithoutH2Sections:
+    """Test parsing links directly under H1 without H2 sections."""
+
+    def test_links_under_h1_only(self):
+        """Links directly under H1 without any H2 sections."""
+        content = """# Guides
+
+- [Doc One](https://example.com/1): First document description
+- [Doc Two](https://example.com/2): Second document description
+"""
+        result = parse_llmstxt(content)
+        assert result.title == "Guides"
+        # Links should be captured even without H2 sections
+        assert len(result.sections) == 1
+        assert result.sections[0].title == "Guides"  # Uses H1 title
+        assert len(result.sections[0].links) == 2
+        assert result.sections[0].links[0].title == "Doc One"
+        assert result.sections[0].links[0].description == "First document description"
+
+
 class TestFullParse:
     def test_databricks_example(self):
         content = """# Databricks Documentation

@@ -21,6 +21,12 @@ def parse_llmstxt(content: str) -> LlmsTxt:
     description = _extract_description(content)
     sections = _extract_sections(content)
 
+    # If no H2 sections, extract links from the content under H1
+    if not sections:
+        links = _extract_links_before_first_h2(content)
+        if links:
+            sections = [LlmsTxtSection(title=title, links=links)]
+
     return LlmsTxt(title=title, description=description, sections=sections)
 
 
@@ -60,6 +66,26 @@ def _extract_description(content: str) -> str | None:
     return " ".join(blockquote_lines)
 
 
+def _extract_links_before_first_h2(content: str) -> list[LlmsTxtLink]:
+    """Extract links from content before the first H2 section (under H1)."""
+    # Find content after H1 and before first H2
+    h1_match = re.search(r"^#\s+.+$", content, re.MULTILINE)
+    if not h1_match:
+        return []
+
+    start_pos = h1_match.end()
+    h2_match = re.search(r"^##\s+", content[start_pos:], re.MULTILINE)
+
+    if h2_match:
+        # Content between H1 and first H2
+        section_content = content[start_pos : start_pos + h2_match.start()]
+    else:
+        # No H2, take all content after H1
+        section_content = content[start_pos:]
+
+    return _extract_links(section_content)
+
+
 def _extract_sections(content: str) -> list[LlmsTxtSection]:
     """Extract H2 sections with their links."""
     sections = []
@@ -87,8 +113,9 @@ def _extract_links(content: str) -> list[LlmsTxtLink]:
     """Extract markdown links from section content."""
     links = []
 
-    # Pattern: - [title](url) - description OR - [title](url)
-    pattern = r"^-\s*\[([^\]]+)\]\(([^)]+)\)(?:\s*-\s*(.+))?$"
+    # Pattern: - [title](url): description OR - [title](url) - description OR - [title](url)
+    # Supports both colon (spec) and dash separators for description
+    pattern = r"^-\s*\[([^\]]+)\]\(([^)]+)\)(?:\s*[:\-]\s*(.+))?$"
 
     for line in content.split("\n"):
         match = re.match(pattern, line.strip())

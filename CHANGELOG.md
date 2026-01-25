@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2025-01-25
+
+### Fixed
+- Support colon (`:`) separator for link descriptions per llms.txt spec
+- Parse links under H1 when no H2 sections exist (e.g., LangGraph llms.txt)
+
 ## [0.2.3] - 2025-01-25
 
 ### Changed
