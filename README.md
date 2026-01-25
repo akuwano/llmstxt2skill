@@ -35,6 +35,55 @@ llmstxt2skill https://docs.databricks.com/llms.txt --force
 | `-o, --output` | Output directory (defaults to `~/.claude/skills`) |
 | `--dry-run` | Preview output without writing files |
 | `--force` | Overwrite existing skill |
+| `--enrich` | Use LLM to generate enriched skill with curation and localization |
+| `--provider` | LLM provider: `databricks`, `openai`, `anthropic`, `openai-compatible` (default: `databricks`) |
+| `--lang` | Target language for enriched skill (default: `ja`) |
+| `--model` | Model identifier (defaults to provider's default model) |
+
+## LLM Enrichment
+
+Use `--enrich` to generate high-quality skills with:
+- Localized content (Japanese by default)
+- Curated and categorized links
+- Trigger conditions for when to use the skill
+- Capabilities and limitations
+- Usage instructions
+
+### Supported Providers
+
+| Provider | Environment Variables | Default Model |
+|----------|----------------------|---------------|
+| `databricks` | `DATABRICKS_HOST`, `DATABRICKS_TOKEN` | `databricks-gemini-3-pro` |
+| `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` |
+| `anthropic` | `ANTHROPIC_API_KEY` | `claude-3-5-sonnet-20241022` |
+| `openai-compatible` | `OPENAI_BASE_URL`, `OPENAI_API_KEY` (optional) | `default` |
+
+### Examples
+
+```bash
+# Databricks (default provider)
+export DATABRICKS_HOST="https://your-workspace.cloud.databricks.com"
+export DATABRICKS_TOKEN="your-token"
+llmstxt2skill https://docs.databricks.com/llms.txt --enrich
+
+# OpenAI
+export OPENAI_API_KEY="sk-..."
+llmstxt2skill https://example.com/llms.txt --enrich --provider openai
+
+# Anthropic
+export ANTHROPIC_API_KEY="sk-ant-..."
+llmstxt2skill https://example.com/llms.txt --enrich --provider anthropic
+
+# Local LLM (vLLM, Ollama, llama.cpp server)
+export OPENAI_BASE_URL="http://localhost:8000"
+llmstxt2skill https://example.com/llms.txt --enrich --provider openai-compatible --model llama3
+
+# Specify model explicitly
+llmstxt2skill https://example.com/llms.txt --enrich --provider openai --model gpt-4o
+
+# English output
+llmstxt2skill https://example.com/llms.txt --enrich --lang en
+```
 
 ## Output
 
