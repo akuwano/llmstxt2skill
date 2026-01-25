@@ -38,6 +38,10 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         help="Custom skill name (defaults to kebab-case of title)",
     )
     parser.add_argument(
+        "-o", "--output",
+        help="Output directory (defaults to ~/.claude/skills)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Print output without writing files",
@@ -73,7 +77,7 @@ async def main() -> None:
             print("\n--- SKILL.md (dry-run) ---")
             print(skill.to_markdown())
         else:
-            base_path = get_default_base_path()
+            base_path = Path(args.output) if args.output else get_default_base_path()
             path = write_skill(skill, base_path=base_path, force=args.force)
             print(f"Written to: {path}")
 

@@ -17,8 +17,17 @@ class TestParseArgs:
         args = parse_args(["https://example.com/llms.txt"])
         assert args.url == "https://example.com/llms.txt"
         assert args.name is None
+        assert args.output is None
         assert args.dry_run is False
         assert args.force is False
+
+    def test_with_output(self):
+        args = parse_args(["https://example.com/llms.txt", "--output", "/custom/path"])
+        assert args.output == "/custom/path"
+
+    def test_with_output_short(self):
+        args = parse_args(["https://example.com/llms.txt", "-o", "/custom/path"])
+        assert args.output == "/custom/path"
 
     def test_with_name(self):
         args = parse_args(["https://example.com/llms.txt", "--name", "my-skill"])
@@ -85,3 +94,26 @@ class TestMain:
         assert skill_file.exists()
         content = skill_file.read_text()
         assert "name: test-docs" in content
+
+    @pytest.mark.asyncio
+    async def test_main_with_custom_output(self, tmp_path):
+        llmstxt_content = """# Test Docs
+
+> Test description.
+
+## Section
+- [Link](https://example.com)
+"""
+        with patch("llmstxt2skill.cli.fetch_llmstxt", new_callable=AsyncMock) as mock_fetch:
+            mock_fetch.return_value = llmstxt_content
+
+            argv = [
+                "llmstxt2skill",
+                "https://example.com/llms.txt",
+                "--output", str(tmp_path),
+            ]
+            with patch.object(sys, "argv", argv):
+                await main()
+
+        skill_file = tmp_path / "test-docs" / "SKILL.md"
+        assert skill_file.exists()

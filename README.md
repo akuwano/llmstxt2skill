@@ -20,13 +20,31 @@ llmstxt2skill https://docs.databricks.com/llms.txt --dry-run
 # Custom skill name
 llmstxt2skill https://docs.databricks.com/llms.txt --name databricks
 
+# Custom output directory
+llmstxt2skill https://docs.databricks.com/llms.txt -o ./skills
+
 # Overwrite existing skill
 llmstxt2skill https://docs.databricks.com/llms.txt --force
 ```
 
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `--name` | Custom skill name (defaults to kebab-case of title) |
+| `-o, --output` | Output directory (defaults to `~/.claude/skills`) |
+| `--dry-run` | Preview output without writing files |
+| `--force` | Overwrite existing skill |
+
 ## Output
 
-Skills are written to `~/.claude/skills/{skill-name}/SKILL.md`
+By default, skills are written to `~/.claude/skills/{skill-name}/SKILL.md`
+
+Use `-o` or `--output` to specify a custom output directory:
+```bash
+llmstxt2skill https://example.com/llms.txt -o ./my-skills
+# Output: ./my-skills/{skill-name}/SKILL.md
+```
 
 ### Example
 
