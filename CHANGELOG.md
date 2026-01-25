@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-01-25
+
+### Added
+- LLM enrichment with `--enrich` option for high-quality skill generation
+- Multi-provider support: Databricks, OpenAI, Anthropic, OpenAI-compatible (local LLMs)
+- `--provider` option to select LLM provider
+- `--lang` option for target language (default: Japanese)
+- `--model` option to specify model identifier
+
+### Changed
+- Enrichment now preserves all links (no curation/deletion)
+- LLM role changed from curation to translation and structuring only
+
 ## [0.1.0] - 2025-01-25
 
 ### Added
