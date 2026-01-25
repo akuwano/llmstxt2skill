@@ -1,0 +1,19 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.1.0] - 2025-01-25
+
+### Added
+- Initial release
+- CLI tool to convert llms.txt to Claude Code Skill format
+- URL fetching with httpx
+- llms.txt parsing (H1 title, blockquote description, H2 sections, links)
+- Skill markdown generation with YAML frontmatter
+- File output to `~/.claude/skills/`
+- CLI options: `--dry-run`, `--force`, `--name`, `--output`

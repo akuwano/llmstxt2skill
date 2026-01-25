@@ -8,10 +8,34 @@ version = "0.1.0"
 description = "Convert llms.txt to Claude Code Skill format"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [
+    { name = "llmstxt2skill contributors" }
+]
+keywords = ["llms.txt", "claude", "skill", "cli", "converter"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Utilities",
+]
 dependencies = [
     "httpx>=0.27.0",
     "pyyaml>=6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/akuwano/llmstxt2skill"
+Repository = "https://github.com/akuwano/llmstxt2skill"
+Issues = "https://github.com/akuwano/llmstxt2skill/issues"
+Changelog = "https://github.com/akuwano/llmstxt2skill/blob/main/CHANGELOG.md"
 
 [project.scripts]
 llmstxt2skill = "llmstxt2skill.cli:run"
