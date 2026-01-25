@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from llmstxt2skill.fetcher import fetch_llmstxt
-from llmstxt2skill.generator import generate_skill
+from llmstxt2skill.generator import generate_skill, to_kebab_case
 from llmstxt2skill.parser import parse_llmstxt
 from llmstxt2skill.writer import write_skill
 
@@ -51,6 +51,21 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Overwrite existing skill",
     )
+    parser.add_argument(
+        "--enrich",
+        action="store_true",
+        help="Use LLM to generate enriched skill (requires DATABRICKS_HOST and DATABRICKS_TOKEN)",
+    )
+    parser.add_argument(
+        "--lang",
+        default="ja",
+        help="Target language for enriched skill (default: ja)",
+    )
+    parser.add_argument(
+        "--model",
+        default="databricks-gemini-3-pro",
+        help="Databricks model endpoint for enrichment (default: databricks-gemini-3-pro)",
+    )
 
     return parser.parse_args(args)
 
@@ -68,9 +83,24 @@ async def main() -> None:
         llmstxt = parse_llmstxt(content)
         print(f"Parsed: {llmstxt.title}")
 
-        # Generate
-        skill = generate_skill(llmstxt, name=args.name)
-        print(f"Generated skill: {skill.name}")
+        # Generate skill name
+        skill_name = args.name if args.name else to_kebab_case(llmstxt.title)
+
+        # Generate (with or without LLM enrichment)
+        if args.enrich:
+            from llmstxt2skill.enricher import enrich_skill
+
+            print(f"Enriching with LLM ({args.model})...")
+            skill = await enrich_skill(
+                llmstxt,
+                name=skill_name,
+                lang=args.lang,
+                model=args.model,
+            )
+            print(f"Generated enriched skill: {skill.name}")
+        else:
+            skill = generate_skill(llmstxt, name=args.name)
+            print(f"Generated skill: {skill.name}")
 
         # Write or dry-run
         if args.dry_run:
@@ -82,7 +112,7 @@ async def main() -> None:
             print(f"Written to: {path}")
 
     except ValueError as e:
-        print(f"Parse error: {e}", file=sys.stderr)
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
     except RuntimeError as e:
         print(f"Fetch error: {e}", file=sys.stderr)

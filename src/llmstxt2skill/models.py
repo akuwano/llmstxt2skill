@@ -48,3 +48,24 @@ class Skill:
             self.content,
         ]
         return "\n".join(lines)
+
+
+@dataclass
+class EnrichedSkill:
+    """LLM-enriched Claude Code Skill with curated content."""
+
+    name: str
+    description: str
+    content: str
+
+    def to_markdown(self) -> str:
+        """Generate SKILL.md content with YAML frontmatter."""
+        lines = [
+            "---",
+            f"name: {self.name}",
+            f"description: {self.description}",
+            "---",
+            "",
+            self.content,
+        ]
+        return "\n".join(lines)
