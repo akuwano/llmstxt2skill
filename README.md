@@ -32,26 +32,31 @@ llmstxt2skill https://docs.databricks.com/llms.txt -o ./skills
 
 # Overwrite existing skill
 llmstxt2skill https://docs.databricks.com/llms.txt --force
+
+# Check version
+llmstxt2skill --version
 ```
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
+| `-v, --version` | Show version and exit |
 | `--name` | Custom skill name (defaults to kebab-case of title) |
 | `-o, --output` | Output directory (defaults to `~/.claude/skills`) |
 | `--dry-run` | Preview output without writing files |
 | `--force` | Overwrite existing skill |
-| `--enrich` | Use LLM to generate enriched skill with curation and localization |
+| `--enrich` | Use LLM to generate enriched skill with translation and structuring |
 | `--provider` | LLM provider: `databricks`, `openai`, `anthropic`, `openai-compatible` (default: `databricks`) |
 | `--lang` | Target language for enriched skill (default: `ja`) |
 | `--model` | Model identifier (defaults to provider's default model) |
+| `--max-tokens` | Maximum tokens for LLM output (default: `16000`) |
 
 ## LLM Enrichment
 
 Use `--enrich` to generate high-quality skills with:
 - Localized content (Japanese by default)
-- Curated and categorized links
+- Translated and structured documentation links (all links preserved)
 - Trigger conditions for when to use the skill
 - Capabilities and limitations
 - Usage instructions
@@ -94,6 +99,9 @@ llmstxt2skill https://example.com/llms.txt --enrich --provider openai --model gp
 
 # English output
 llmstxt2skill https://example.com/llms.txt --enrich --lang en
+
+# Increase max tokens for large llms.txt files
+llmstxt2skill https://docs.databricks.com/llms.txt --enrich --max-tokens 20000
 ```
 
 ## Output

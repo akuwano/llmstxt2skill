@@ -1,91 +1,83 @@
 # CLAUDE.md
 
-
 ## プロダクトビジョンと目的
 
 **ビジョン**
+llms.txt形式のドキュメントインデックスを、Claude Codeで活用できる高品質なSkillに変換する
 
 **目的**
-llms.txtをskillとしてジェネレートする
+- llms.txtをClaude Code Skill形式（SKILL.md）に自動変換
+- LLMによる翻訳・構造化でローカライズされた高品質スキルを生成
+- 複数のLLMプロバイダー（Databricks, OpenAI, Anthropic, ローカルLLM）をサポート
 
 ---
 
 ## ターゲットユーザーと課題・ニーズ
 
 ### ターゲットユーザー
+- Claude Codeを使用する開発者
+- llms.txtを公開しているドキュメントサイトの利用者
 
 ### 課題
 | 優先度 | 課題 |
 |--------|------|
-| P0 | |
+| P0 | llms.txtからSkillへの手動変換が面倒 |
+| P1 | 英語ドキュメントを日本語で使いたい |
 
 ### ニーズ
+- コマンド一発でSkillを生成したい
+- ドキュメントの全リンクを保持したままローカライズしたい
 
 ---
 
 ## 成功の定義
 
-
----
-
-## ユーザーストーリー
-
+- llms.txtを指定してSkillが生成できる
+- --enrichオプションでLLMによる高品質変換ができる
+- 複数のLLMプロバイダーで動作する
 
 ---
 
 ## 機能要件
 
-### 既存機能（実装済み）
+### 実装済み機能
 
 | 機能 | モジュール | 説明 |
 |------|-----------|------|
 | llms.txt取得 | fetcher.py | URLからllms.txtをfetch |
 | llms.txtパース | parser.py | H1/blockquote/H2/リンク抽出 |
 | Skill生成 | generator.py | LlmsTxt→Skill変換 |
+| LLM Enrichment | enricher.py | LLMを使った高品質スキル生成 |
+| マルチプロバイダー | llm/ | Databricks, OpenAI, Anthropic, OpenAI互換 |
 | ファイル出力 | writer.py | ~/.claude/skills/へ出力 |
 | CLI | cli.py | コマンドラインインターフェース |
 
-### 新規機能（MVP必須）
+### CLIオプション
 
-| 機能 | 説明 | 状態 |
-|------|------|------|
-| URL取得 | httpxでllms.txt取得 | 完了 |
-| パース | llms.txt形式をパース | 完了 |
-| 変換 | Claude Skill形式に変換 | 完了 |
-| 出力 | SKILL.mdファイル出力 | 完了 |
-| CLI | --dry-run, --force, --name | 完了 |
-
-### 機能の依存関係
-
-
----
-
-## 非機能要件
-
-### スケール要件
-
-### 運用要件
+| オプション | 説明 |
+|-----------|------|
+| `-v, --version` | バージョン表示 |
+| `--name` | カスタムスキル名 |
+| `-o, --output` | 出力ディレクトリ |
+| `--dry-run` | ファイル出力なしでプレビュー |
+| `--force` | 既存スキルを上書き |
+| `--enrich` | LLMで高品質スキル生成 |
+| `--provider` | LLMプロバイダー選択 |
+| `--lang` | 出力言語（デフォルト: ja） |
+| `--model` | モデル指定 |
+| `--max-tokens` | 出力トークン上限（デフォルト: 16000） |
 
 ---
 
 ## 受け入れ条件
 
-### MVP完了の定義
+### 品質目標
 
-### 品質目標（MVP後）
-
-| 指標 | 目標 | 計測開始 |
-|------|------|----------|
-| テストカバレッジ | 80%以上 | MVP後 |
-| CI実行時間 | 5分以内 | MVP後 |
-| スキーマ変換エラー率 | 0% | MVP後 |
-
----
-
-## 優先順位
-
-| 優先度 | 機能 | 状態 |
-|--------|------|------|
+| 指標 | 目標 | 状態 |
+|------|------|------|
+| テストカバレッジ | 80%以上 | 達成 |
+| CI実行時間 | 5分以内 | 達成 |
+| スキーマ変換エラー率 | 0% | 達成 |
 
 ---
 
@@ -104,11 +96,17 @@ uv run llmstxt2skill https://docs.databricks.com/llms.txt --dry-run
 # CLI実行（実際に出力）
 uv run llmstxt2skill https://docs.databricks.com/llms.txt
 
+# LLM Enrichment
+uv run llmstxt2skill https://docs.databricks.com/llms.txt --enrich
+
 # 強制上書き
 uv run llmstxt2skill https://docs.databricks.com/llms.txt --force
 
 # カスタム名指定
 uv run llmstxt2skill https://docs.databricks.com/llms.txt --name databricks
+
+# ビルド＆公開
+uv run python -m build && uv run twine upload dist/*
 ```
 
 ---
@@ -122,20 +120,33 @@ src/llmstxt2skill/
 ├── cli.py          # CLIエントリーポイント
 ├── fetcher.py      # URL取得（httpx）
 ├── parser.py       # llms.txtパース
-├── generator.py    # Skill生成
+├── generator.py    # Skill生成（シンプル変換）
+├── enricher.py     # LLM Enrichment（高品質変換）
 ├── writer.py       # ファイル出力
-└── models.py       # データクラス
+├── models.py       # データクラス
+└── llm/            # LLMプロバイダー
+    ├── base.py     # Protocol定義
+    ├── factory.py  # プロバイダー生成
+    └── providers/  # 各プロバイダー実装
+        ├── databricks.py
+        ├── openai.py
+        ├── anthropic.py
+        └── openai_compatible.py
 ```
 
 ### Core modules
+
 | モジュール | 役割 |
 |-----------|------|
-| models.py | LlmsTxtLink, LlmsTxtSection, LlmsTxt, Skill dataclass |
+| models.py | LlmsTxtLink, LlmsTxtSection, LlmsTxt, Skill, EnrichedSkill |
 | parser.py | llms.txt→LlmsTxt変換 |
-| generator.py | LlmsTxt→Skill変換、kebab-case変換 |
+| generator.py | LlmsTxt→Skill変換（シンプル） |
+| enricher.py | LlmsTxt→EnrichedSkill変換（LLM使用） |
 | fetcher.py | 非同期URL取得 |
 | writer.py | SKILL.mdファイル出力 |
 | cli.py | argparse、メイン処理 |
+| llm/base.py | LLMProvider Protocol, LLMRequest |
+| llm/factory.py | create_provider(), get_default_model() |
 
 ---
 
@@ -160,6 +171,10 @@ src/llmstxt2skill/
 | カテゴリ | 技術 |
 |----------|------|
 | 言語 | Python 3.11+ |
+| パッケージ管理 | uv, hatchling |
+| HTTP | httpx |
+| テスト | pytest, pytest-asyncio |
+| リンター | ruff |
 
 ### コミット規約
 
@@ -247,4 +262,3 @@ chore(deps): update protobuf to 4.25.0
 - **検証可能**: テストで動作を具体的に確認できる
 - **完結している**: 中途半端な状態で終わらない
 - **1コミット**: 1イテレーション = 1コミット
-
