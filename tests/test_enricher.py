@@ -78,6 +78,12 @@ class TestBuildEnrichmentPrompt:
         prompt = _build_enrichment_prompt(sample_llmstxt, lang="ja")
         assert "トリガー" in prompt or "trigger" in prompt.lower()
 
+    def test_prohibits_link_deletion(self, sample_llmstxt: LlmsTxt) -> None:
+        """Prompt should prohibit deleting links."""
+        prompt = _build_enrichment_prompt(sample_llmstxt, lang="ja")
+        assert "削除" in prompt and "禁止" in prompt
+        assert "すべてのリンク" in prompt
+
 
 class TestParseEnrichedResponse:
     """Tests for _parse_enriched_response."""
