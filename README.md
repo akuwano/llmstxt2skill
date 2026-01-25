@@ -49,6 +49,8 @@ Use `--enrich` to generate high-quality skills with:
 - Capabilities and limitations
 - Usage instructions
 
+> **Note:** The `--enrich` option calls external LLM APIs, which may incur costs depending on your provider and usage.
+
 ### Supported Providers
 
 | Provider | Environment Variables | Default Model |
@@ -57,6 +59,8 @@ Use `--enrich` to generate high-quality skills with:
 | `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` |
 | `anthropic` | `ANTHROPIC_API_KEY` | `claude-3-5-sonnet-20241022` |
 | `openai-compatible` | `OPENAI_BASE_URL`, `OPENAI_API_KEY` (optional) | `default` |
+
+> **Note:** The `openai-compatible` provider is intended for local LLM servers (vLLM, Ollama, llama.cpp) and uses HTTP by default. For production use with remote endpoints, ensure HTTPS is configured.
 
 ### Examples
 
