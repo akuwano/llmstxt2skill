@@ -30,6 +30,11 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         description="Convert llms.txt to Claude Code Skill format",
     )
     parser.add_argument(
+        "-v", "--version",
+        action="version",
+        version="%(prog)s 0.2.1",
+    )
+    parser.add_argument(
         "url",
         help="URL to llms.txt file (e.g., https://docs.databricks.com/llms.txt)",
     )
