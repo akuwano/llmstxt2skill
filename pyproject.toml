@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "llmstxt2skill"
-version = "0.2.2"
+version = "0.2.3"
 description = "Convert llms.txt to Claude Code Skill format"
 readme = "README.md"
 requires-python = ">=3.11"

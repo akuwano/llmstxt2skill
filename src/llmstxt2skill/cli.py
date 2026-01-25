@@ -32,7 +32,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "-v", "--version",
         action="version",
-        version="%(prog)s 0.2.2",
+        version="%(prog)s 0.2.3",
     )
     parser.add_argument(
         "url",
