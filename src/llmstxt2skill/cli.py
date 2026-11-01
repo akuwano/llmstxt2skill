@@ -5,10 +5,11 @@ import asyncio
 import sys
 from pathlib import Path
 
+from llmstxt2skill.differ import diff_skills, format_diff
 from llmstxt2skill.fetcher import fetch_llmstxt
 from llmstxt2skill.generator import generate_skill, to_kebab_case
 from llmstxt2skill.parser import parse_llmstxt
-from llmstxt2skill.writer import write_skill
+from llmstxt2skill.writer import get_skill_path, write_skill
 
 
 def get_default_base_path() -> Path:
@@ -57,6 +58,11 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         help="Overwrite existing skill",
     )
     parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Regenerate an existing skill and show added/removed sections and links",
+    )
+    parser.add_argument(
         "--enrich",
         action="store_true",
         help="Use LLM to generate enriched skill with curation and localization",
@@ -102,6 +108,20 @@ async def main() -> None:
         # Generate skill name
         skill_name = args.name if args.name else to_kebab_case(llmstxt.title)
 
+        # Check the existing skill before generating (avoids LLM calls)
+        base_path = Path(args.output) if args.output else get_default_base_path()
+        skill_path = get_skill_path(skill_name, base_path)
+        if args.update:
+            if not skill_path.exists():
+                print(f"Skill not found: {skill_path}", file=sys.stderr)
+                print("Run without --update to create it", file=sys.stderr)
+                sys.exit(1)
+            try:
+                old_markdown = skill_path.read_text()
+            except OSError as e:
+                print(f"Cannot read existing skill: {skill_path}: {e}", file=sys.stderr)
+                sys.exit(1)
+
         # Generate (with or without LLM enrichment)
         if args.enrich:
             from llmstxt2skill.enricher import enrich_skill
@@ -122,12 +142,18 @@ async def main() -> None:
             skill = generate_skill(llmstxt, name=args.name)
             print(f"Generated skill: {skill.name}")
 
+        # Update: show changes, then overwrite unless dry-run
+        if args.update:
+            diff = diff_skills(old_markdown, skill.to_markdown())
+            print(format_diff(diff))
+            if not args.dry_run:
+                path = write_skill(skill, base_path=base_path, force=True)
+                print(f"Updated: {path}")
         # Write or dry-run
-        if args.dry_run:
+        elif args.dry_run:
             print("\n--- SKILL.md (dry-run) ---")
             print(skill.to_markdown())
         else:
-            base_path = Path(args.output) if args.output else get_default_base_path()
             path = write_skill(skill, base_path=base_path, force=args.force)
             print(f"Written to: {path}")
 

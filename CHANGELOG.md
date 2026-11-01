@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `--update` option to regenerate an existing skill and show added/removed sections and links
+
 ## [0.2.4] - 2025-01-25
 
 ### Fixed
