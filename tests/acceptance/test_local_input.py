@@ -9,7 +9,6 @@ import pytest
 from llmstxt2skill.cli import main
 from llmstxt2skill.models import EnrichedSkill
 
-
 LINK = "https://example.com/local-guide"
 DOCUMENT = (
     "# Local Docs\n\n"
