@@ -53,6 +53,11 @@ class TestParseArgs:
         assert args.dry_run is True
         assert args.force is True
 
+    def test_local_path(self):
+        args = parse_args(["./llms.txt", "--dry-run"])
+        assert args.url == "./llms.txt"
+        assert args.dry_run is True
+
 
 class TestMain:
     @pytest.mark.asyncio
@@ -117,3 +122,40 @@ class TestMain:
 
         skill_file = tmp_path / "test-docs" / "SKILL.md"
         assert skill_file.exists()
+
+    @pytest.mark.asyncio
+    async def test_main_reads_local_file(self, tmp_path, capsys):
+        llms_file = tmp_path / "llms.txt"
+        llms_file.write_text("""# Local Docs
+
+> Local description.
+
+## Section
+- [Link](https://example.com/local)
+""", encoding="utf-8")
+
+        with patch("llmstxt2skill.cli.fetch_llmstxt", new_callable=AsyncMock) as mock_fetch:
+            argv = ["llmstxt2skill", str(llms_file), "--dry-run"]
+            with patch.object(sys, "argv", argv):
+                await main()
+
+        mock_fetch.assert_not_called()
+        captured = capsys.readouterr()
+        assert f"Reading {llms_file}..." in captured.out
+        assert "name: local-docs" in captured.out
+        assert "https://example.com/local" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_main_missing_local_file_exits(self, tmp_path, capsys):
+        missing = tmp_path / "missing.txt"
+
+        with patch("llmstxt2skill.cli.fetch_llmstxt", new_callable=AsyncMock) as mock_fetch:
+            argv = ["llmstxt2skill", str(missing), "--dry-run"]
+            with patch.object(sys, "argv", argv):
+                with pytest.raises(SystemExit) as exc_info:
+                    await main()
+
+        assert exc_info.value.code == 1
+        mock_fetch.assert_not_called()
+        captured = capsys.readouterr()
+        assert f"Error: Cannot read {missing}:" in captured.err
