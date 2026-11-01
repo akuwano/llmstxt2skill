@@ -111,10 +111,16 @@ async def main() -> None:
         # Check the existing skill before generating (avoids LLM calls)
         base_path = Path(args.output) if args.output else get_default_base_path()
         skill_path = get_skill_path(skill_name, base_path)
-        if args.update and not skill_path.exists():
-            print(f"Skill not found: {skill_path}", file=sys.stderr)
-            print("Run without --update to create it", file=sys.stderr)
-            sys.exit(1)
+        if args.update:
+            if not skill_path.exists():
+                print(f"Skill not found: {skill_path}", file=sys.stderr)
+                print("Run without --update to create it", file=sys.stderr)
+                sys.exit(1)
+            try:
+                old_markdown = skill_path.read_text()
+            except OSError as e:
+                print(f"Cannot read existing skill: {skill_path}: {e}", file=sys.stderr)
+                sys.exit(1)
 
         # Generate (with or without LLM enrichment)
         if args.enrich:
@@ -138,7 +144,7 @@ async def main() -> None:
 
         # Update: show changes, then overwrite unless dry-run
         if args.update:
-            diff = diff_skills(skill_path.read_text(), skill.to_markdown())
+            diff = diff_skills(old_markdown, skill.to_markdown())
             print(format_diff(diff))
             if not args.dry_run:
                 path = write_skill(skill, base_path=base_path, force=True)

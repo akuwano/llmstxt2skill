@@ -171,3 +171,20 @@ class TestMain:
         enrich.assert_not_called()
         captured = capsys.readouterr()
         assert "Skill not found:" in captured.err
+
+    @pytest.mark.asyncio
+    async def test_main_update_unreadable_skill_exits_with_error(self, tmp_path, capsys):
+        # SKILL.md is a directory, so reading it fails
+        (tmp_path / "test-docs" / "SKILL.md").mkdir(parents=True)
+        with patch("llmstxt2skill.cli.fetch_llmstxt", new_callable=AsyncMock) as mock_fetch:
+            mock_fetch.return_value = "# Test Docs\n"
+            argv = ["llmstxt2skill", "https://example.com/llms.txt",
+                    "-o", str(tmp_path), "--update"]
+            with patch.object(sys, "argv", argv):
+                with pytest.raises(SystemExit) as exc:
+                    await main()
+
+        assert exc.value.code == 1
+        captured = capsys.readouterr()
+        assert "Cannot read existing skill:" in captured.err
+        assert "Traceback" not in captured.err
