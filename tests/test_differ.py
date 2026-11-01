@@ -55,6 +55,33 @@ class TestExtractOutline:
         assert sections == ["Real"]
         assert links == []
 
+    def test_skips_tilde_code_blocks(self):
+        markdown = "~~~markdown\n## Example\n[x](https://example.com/x)\n~~~\n[y](https://example.com/y)\n"
+        sections, links = extract_outline(markdown)
+        assert sections == []
+        assert [link.url for link in links] == ["https://example.com/y"]
+
+    def test_longer_fence_is_not_closed_by_shorter_fence(self):
+        markdown = (
+            "````markdown\n"
+            "```\n"
+            "## Example\n"
+            "[x](https://example.com/x)\n"
+            "```\n"
+            "[z](https://example.com/z)\n"
+            "````\n"
+            "## Real\n"
+            "[y](https://example.com/y)\n"
+        )
+        sections, links = extract_outline(markdown)
+        assert sections == ["Real"]
+        assert [link.url for link in links] == ["https://example.com/y"]
+
+    def test_backtick_fence_is_not_closed_by_tilde_fence(self):
+        markdown = "```\n~~~\n[x](https://example.com/x)\n```\n[y](https://example.com/y)\n"
+        _, links = extract_outline(markdown)
+        assert [link.url for link in links] == ["https://example.com/y"]
+
     def test_deduplicates_by_url_keeping_first_title(self):
         markdown = "- [First](https://example.com/a)\n- [Second](https://example.com/a)\n"
         _, links = extract_outline(markdown)

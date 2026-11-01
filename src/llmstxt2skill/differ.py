@@ -8,6 +8,9 @@ from llmstxt2skill.models import LlmsTxtLink
 # Markdown link: [title](url), excluding images ![alt](src)
 LINK_PATTERN = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)\s]+)\)")
 
+# Fenced code block delimiter: ``` or ~~~ (3 or more), up to 3 spaces of indent
+FENCE_PATTERN = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+
 
 @dataclass
 class SkillDiff:
@@ -54,13 +57,24 @@ def extract_outline(markdown: str) -> tuple[list[str], list[LlmsTxtLink]]:
     sections: list[str] = []
     links: list[LlmsTxtLink] = []
     seen_urls: set[str] = set()
-    in_code_block = False
+    # Opening fence of the current code block (None when outside)
+    open_fence: str | None = None
 
     for line in lines[start:]:
-        if line.strip().startswith("```"):
-            in_code_block = not in_code_block
-            continue
-        if in_code_block:
+        fence = FENCE_PATTERN.match(line)
+        if open_fence is None:
+            if fence:
+                open_fence = fence.group(1)
+                continue
+        else:
+            # Closed only by the same character, at least as long, with nothing after
+            if (
+                fence
+                and fence.group(1)[0] == open_fence[0]
+                and len(fence.group(1)) >= len(open_fence)
+                and not fence.group(2).strip()
+            ):
+                open_fence = None
             continue
 
         if line.startswith("## "):
