@@ -82,6 +82,19 @@ class TestExtractOutline:
         _, links = extract_outline(markdown)
         assert [link.url for link in links] == ["https://example.com/y"]
 
+    def test_links_with_parentheses_in_url(self):
+        markdown = (
+            "- [Spark](https://en.wikipedia.org/wiki/Apache_Spark_(software))\n"
+            "- [A](https://example.com/a(b)c)\n"
+            "- [B](https://example.com/a(b))\n"
+        )
+        _, links = extract_outline(markdown)
+        assert [link.url for link in links] == [
+            "https://en.wikipedia.org/wiki/Apache_Spark_(software)",
+            "https://example.com/a(b)c",
+            "https://example.com/a(b)",
+        ]
+
     def test_deduplicates_by_url_keeping_first_title(self):
         markdown = "- [First](https://example.com/a)\n- [Second](https://example.com/a)\n"
         _, links = extract_outline(markdown)

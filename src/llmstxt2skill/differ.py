@@ -5,8 +5,9 @@ from dataclasses import dataclass
 
 from llmstxt2skill.models import LlmsTxtLink
 
-# Markdown link: [title](url), excluding images ![alt](src)
-LINK_PATTERN = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)\s]+)\)")
+# Markdown link: [title](url), excluding images ![alt](src).
+# The URL may contain one level of balanced parentheses (e.g. .../Spark_(software)).
+LINK_PATTERN = re.compile(r"(?<!!)\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)")
 
 # Fenced code block delimiter: ``` or ~~~ (3 or more), up to 3 spaces of indent
 FENCE_PATTERN = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
