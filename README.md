@@ -33,6 +33,9 @@ llmstxt2skill https://docs.databricks.com/llms.txt -o ./skills
 # Overwrite existing skill
 llmstxt2skill https://docs.databricks.com/llms.txt --force
 
+# Local llms.txt file (all options work the same way)
+llmstxt2skill ./llms.txt --dry-run
+
 # Check version
 llmstxt2skill --version
 ```
@@ -41,6 +44,7 @@ llmstxt2skill --version
 
 | Option | Description |
 |--------|-------------|
+| `source` | URL (`http://` / `https://`) or local file path to llms.txt (read as UTF-8) |
 | `-v, --version` | Show version and exit |
 | `--name` | Custom skill name (defaults to kebab-case of title) |
 | `-o, --output` | Output directory (defaults to `~/.claude/skills`) |

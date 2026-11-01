@@ -44,7 +44,7 @@ llms.txt形式のドキュメントインデックスを、Claude Codeで活用�
 
 | 機能 | モジュール | 説明 |
 |------|-----------|------|
-| llms.txt取得 | fetcher.py | URLからllms.txtをfetch |
+| llms.txt取得 | fetcher.py | URLからllms.txtをfetch、またはローカルファイルを読む |
 | llms.txtパース | parser.py | H1/blockquote/H2/リンク抽出 |
 | Skill生成 | generator.py | LlmsTxt→Skill変換 |
 | LLM Enrichment | enricher.py | LLMを使った高品質スキル生成 |
@@ -92,6 +92,9 @@ uv run ruff check src/ tests/
 
 # CLI実行（dry-run）
 uv run llmstxt2skill https://docs.databricks.com/llms.txt --dry-run
+
+# CLI実行（ローカルファイル）
+uv run llmstxt2skill ./llms.txt --dry-run
 
 # CLI実行（実際に出力）
 uv run llmstxt2skill https://docs.databricks.com/llms.txt
@@ -142,7 +145,7 @@ src/llmstxt2skill/
 | parser.py | llms.txt→LlmsTxt変換 |
 | generator.py | LlmsTxt→Skill変換（シンプル） |
 | enricher.py | LlmsTxt→EnrichedSkill変換（LLM使用） |
-| fetcher.py | 非同期URL取得 |
+| fetcher.py | 非同期URL取得、ローカルファイル読み込み |
 | writer.py | SKILL.mdファイル出力 |
 | cli.py | argparse、メイン処理 |
 | llm/base.py | LLMProvider Protocol, LLMRequest |
