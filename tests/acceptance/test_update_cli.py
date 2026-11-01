@@ -7,7 +7,6 @@ import pytest
 
 from llmstxt2skill.cli import main
 
-
 URL = "https://example.com/llms.txt"
 OLD = """# Update Docs
 
