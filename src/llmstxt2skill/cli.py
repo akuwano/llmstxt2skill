@@ -5,7 +5,7 @@ import asyncio
 import sys
 from pathlib import Path
 
-from llmstxt2skill.fetcher import fetch_llmstxt
+from llmstxt2skill.fetcher import fetch_llmstxt, is_url, read_llmstxt_file
 from llmstxt2skill.generator import generate_skill, to_kebab_case
 from llmstxt2skill.parser import parse_llmstxt
 from llmstxt2skill.writer import write_skill
@@ -36,7 +36,11 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "url",
-        help="URL to llms.txt file (e.g., https://docs.databricks.com/llms.txt)",
+        metavar="source",
+        help=(
+            "URL or local file path to llms.txt "
+            "(e.g., https://docs.databricks.com/llms.txt or ./llms.txt)"
+        ),
     )
     parser.add_argument(
         "--name",
@@ -91,9 +95,13 @@ async def main() -> None:
     args = parse_args()
 
     try:
-        # Fetch
-        print(f"Fetching {args.url}...")
-        content = await fetch_llmstxt(args.url)
+        # Fetch (URL) or read (local file)
+        if is_url(args.url):
+            print(f"Fetching {args.url}...")
+            content = await fetch_llmstxt(args.url)
+        else:
+            print(f"Reading {args.url}...")
+            content = read_llmstxt_file(args.url)
 
         # Parse
         llmstxt = parse_llmstxt(content)
