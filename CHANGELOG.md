@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `--update` option to regenerate an existing skill and show added/removed sections and links
+- Accept a local llms.txt file path as input (e.g., `llmstxt2skill ./llms.txt`); arguments not starting with `http://` or `https://` are read as local files
 
 ## [0.2.4] - 2025-01-25
 

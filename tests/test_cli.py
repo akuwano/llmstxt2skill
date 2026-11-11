@@ -61,6 +61,11 @@ class TestParseArgs:
         assert args.dry_run is True
         assert args.force is True
 
+    def test_local_path(self):
+        args = parse_args(["./llms.txt", "--dry-run"])
+        assert args.url == "./llms.txt"
+        assert args.dry_run is True
+
 
 class TestMain:
     @pytest.mark.asyncio
@@ -188,3 +193,59 @@ class TestMain:
         captured = capsys.readouterr()
         assert "Cannot read existing skill:" in captured.err
         assert "Traceback" not in captured.err
+
+    @pytest.mark.asyncio
+    async def test_main_reads_local_file(self, tmp_path, capsys):
+        llms_file = tmp_path / "llms.txt"
+        llms_file.write_text("""# Local Docs
+
+> Local description.
+
+## Section
+- [Link](https://example.com/local)
+""", encoding="utf-8")
+
+        with patch("llmstxt2skill.cli.fetch_llmstxt", new_callable=AsyncMock) as mock_fetch:
+            argv = ["llmstxt2skill", str(llms_file), "--dry-run"]
+            with patch.object(sys, "argv", argv):
+                await main()
+
+        mock_fetch.assert_not_called()
+        captured = capsys.readouterr()
+        assert f"Reading {llms_file}..." in captured.out
+        assert "name: local-docs" in captured.out
+        assert "https://example.com/local" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_main_missing_local_file_exits(self, tmp_path, capsys):
+        missing = tmp_path / "missing.txt"
+
+        with patch("llmstxt2skill.cli.fetch_llmstxt", new_callable=AsyncMock) as mock_fetch:
+            argv = ["llmstxt2skill", str(missing), "--dry-run"]
+            with patch.object(sys, "argv", argv):
+                with pytest.raises(SystemExit) as exc_info:
+                    await main()
+
+        assert exc_info.value.code == 1
+        mock_fetch.assert_not_called()
+        captured = capsys.readouterr()
+        assert f"Error: Cannot read {missing}:" in captured.err
+
+
+@pytest.mark.asyncio
+async def test_main_update_with_local_file(tmp_path, capsys):
+    """--update（#2）とローカルの llms.txt（#1）の組み合わせ。"""
+    llms = tmp_path / "llms.txt"
+    out = tmp_path / "skills"
+    old = "# Local Docs\n\n## Section\n- [Old](https://example.com/old)\n"
+    llms.write_text(old, encoding="utf-8")
+    with patch.object(sys, "argv", ["llmstxt2skill", str(llms), "-o", str(out)]):
+        await main()
+    new = "# Local Docs\n\n## Section\n- [New](https://example.com/new)\n"
+    llms.write_text(new, encoding="utf-8")
+    with patch.object(sys, "argv", ["llmstxt2skill", str(llms), "-o", str(out), "--update"]):
+        await main()
+    captured = capsys.readouterr()
+    assert "+ [New](https://example.com/new)" in captured.out
+    assert "- [Old](https://example.com/old)" in captured.out
+    assert "https://example.com/new" in (out / "local-docs" / "SKILL.md").read_text()
