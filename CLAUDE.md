@@ -50,6 +50,7 @@ llms.txt形式のドキュメントインデックスを、Claude Codeで活用�
 | LLM Enrichment | enricher.py | LLMを使った高品質スキル生成 |
 | マルチプロバイダー | llm/ | Databricks, OpenAI, Anthropic, OpenAI互換 |
 | ファイル出力 | writer.py | ~/.claude/skills/へ出力 |
+| 更新差分 | differ.py | 既存と新しいSKILL.mdのセクション・リンクの増減 |
 | CLI | cli.py | コマンドラインインターフェース |
 
 ### CLIオプション
@@ -61,6 +62,7 @@ llms.txt形式のドキュメントインデックスを、Claude Codeで活用�
 | `-o, --output` | 出力ディレクトリ |
 | `--dry-run` | ファイル出力なしでプレビュー |
 | `--force` | 既存スキルを上書き |
+| `--update` | 既存スキルを作り直し、増えた・消えたセクションとリンクを表示 |
 | `--enrich` | LLMで高品質スキル生成 |
 | `--provider` | LLMプロバイダー選択 |
 | `--lang` | 出力言語（デフォルト: ja） |
@@ -105,6 +107,9 @@ uv run llmstxt2skill https://docs.databricks.com/llms.txt --enrich
 # 強制上書き
 uv run llmstxt2skill https://docs.databricks.com/llms.txt --force
 
+# 更新（増えた・消えたセクションとリンクを表示）
+uv run llmstxt2skill https://docs.databricks.com/llms.txt --update
+
 # カスタム名指定
 uv run llmstxt2skill https://docs.databricks.com/llms.txt --name databricks
 
@@ -126,6 +131,7 @@ src/llmstxt2skill/
 ├── generator.py    # Skill生成（シンプル変換）
 ├── enricher.py     # LLM Enrichment（高品質変換）
 ├── writer.py       # ファイル出力
+├── differ.py       # 更新時の差分（セクション・リンク）
 ├── models.py       # データクラス
 └── llm/            # LLMプロバイダー
     ├── base.py     # Protocol定義
@@ -147,6 +153,7 @@ src/llmstxt2skill/
 | enricher.py | LlmsTxt→EnrichedSkill変換（LLM使用） |
 | fetcher.py | 非同期URL取得、ローカルファイル読み込み |
 | writer.py | SKILL.mdファイル出力 |
+| differ.py | SKILL.md同士のセクション・リンクの増減 |
 | cli.py | argparse、メイン処理 |
 | llm/base.py | LLMProvider Protocol, LLMRequest |
 | llm/factory.py | create_provider(), get_default_model() |

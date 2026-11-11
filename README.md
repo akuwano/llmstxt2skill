@@ -33,6 +33,12 @@ llmstxt2skill https://docs.databricks.com/llms.txt -o ./skills
 # Overwrite existing skill
 llmstxt2skill https://docs.databricks.com/llms.txt --force
 
+# Regenerate an existing skill and show added/removed sections and links
+llmstxt2skill https://docs.databricks.com/llms.txt --update
+
+# Preview changes without writing
+llmstxt2skill https://docs.databricks.com/llms.txt --update --dry-run
+
 # Local llms.txt file (all options work the same way)
 llmstxt2skill ./llms.txt --dry-run
 
@@ -50,6 +56,7 @@ llmstxt2skill --version
 | `-o, --output` | Output directory (defaults to `~/.claude/skills`) |
 | `--dry-run` | Preview output without writing files |
 | `--force` | Overwrite existing skill |
+| `--update` | Regenerate an existing skill and show added/removed sections and links |
 | `--enrich` | Use LLM to generate enriched skill with translation and structuring |
 | `--provider` | LLM provider: `databricks`, `openai`, `anthropic`, `openai-compatible` (default: `databricks`) |
 | `--lang` | Target language for enriched skill (default: `ja`) |
@@ -116,6 +123,24 @@ Use `-o` or `--output` to specify a custom output directory:
 ```bash
 llmstxt2skill https://example.com/llms.txt -o ./my-skills
 # Output: ./my-skills/{skill-name}/SKILL.md
+```
+
+### Updating a skill
+
+When the source llms.txt changes, use `--update` to regenerate the skill. It compares the existing
+SKILL.md with the new one by `##` sections and link URLs, prints what was added and removed, then
+overwrites the file. With `--dry-run`, only the changes are printed. `--update` fails if the skill
+does not exist yet.
+
+```
+Changes:
+  Sections added (1):
+    + API
+  Links added (1):
+    + [API Ref](https://example.com/api)
+  Links removed (1):
+    - [Old](https://example.com/old)
+Updated: ~/.claude/skills/example/SKILL.md
 ```
 
 ### Example
